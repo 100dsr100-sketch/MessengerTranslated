@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Messenger Translated</title>
+<link rel="icon" type="image/svg+xml"
+ href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0b0b'/%3E%3Crect x='7' y='7' width='50' height='50' rx='9' fill='none' stroke='%23E8B200' stroke-width='2.5'/%3E%3Cpath d='M20 21h24a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H27l-7 6v-6a3 3 0 0 1-3-3V24a3 3 0 0 1 3-3z' fill='none' stroke='%23E8B200' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Msg Translated">
+<style>
+  :root{
+    --gold:#E8B200;
+    --gold-line:#E8B200;
+    --bg:#fffdf5;
+    --panel:#ffffff;
+    --ink:#1c1c1c;
+    --muted:#6b6b6b;
+    --accent:#0b6b3a;
+    --warn:#b45309;
+    --field:#ffffff;
+    --field-border:#c9c9c9;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#161512; --panel:#1f1e1a; --ink:#f2efe6; --muted:#a8a498;
+      --field:#26251f; --field-border:#4a483f; --accent:#4ade80; --warn:#fbbf24;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);padding:12px;}
+  .frame{
+    max-width:640px;margin:0 auto;background:var(--panel);
+    border:8px double var(--gold-line);border-radius:6px;padding:0 0 16px;
+  }
+  .banner{position:relative;border-bottom:5px double var(--gold-line);padding:14px 18px;display:flex;align-items:center;gap:12px;}
+  .banner .logo{width:38px;height:38px;flex:0 0 38px;}
+  .banner h1{margin:0;font-size:20px;letter-spacing:.5px;}
+  .version{position:absolute;top:9px;right:14px;color:var(--gold);font-weight:700;font-size:12px;}
+  .gear{position:absolute;bottom:8px;right:12px;background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;line-height:1;padding:2px 4px;}
+  .status{padding:8px 18px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--field-border);min-height:1.4em;}
+  .status.warn{color:var(--warn);}
+  .status.ok{color:var(--accent);}
+  main{padding:14px 18px 0;}
+
+  .lang-chip{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--muted);
+    border:1px solid var(--field-border);border-radius:999px;padding:3px 10px;margin-bottom:8px;}
+
+  .box-label{font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--muted);text-transform:uppercase;margin:10px 0 5px;}
+  textarea{width:100%;font-size:20px;line-height:1.35;padding:10px;border:1px solid var(--field-border);
+    border-radius:5px;background:var(--field);color:var(--ink);resize:vertical;font-family:inherit;}
+  #srcBox{min-height:84px;}
+  #outBox{min-height:84px;border-color:var(--gold-line);border-width:2px;}
+
+  .mic-row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+  #micBtn{flex:1 1 auto;font-size:17px;padding:13px 16px;border-radius:8px;border:2px solid var(--gold-line);
+    background:var(--gold);color:#1c1c1c;font-weight:700;cursor:pointer;min-width:180px;}
+  #micBtn.listening{background:#c0392b;color:#fff;border-color:#c0392b;animation:pulse 1s infinite;}
+  @keyframes pulse{50%{opacity:.55;}}
+  .mini{font-size:14px;padding:11px 13px;border-radius:7px;border:1px solid var(--field-border);
+    background:var(--field);color:var(--ink);cursor:pointer;font-weight:600;}
+
+  #openBtn{width:100%;margin-top:14px;font-size:17px;padding:15px 16px;border-radius:9px;border:2px solid var(--gold-line);
+    background:var(--panel);color:var(--ink);font-weight:700;cursor:pointer;}
+  #openBtn:active{background:var(--field);}
+  #openBtn .who{color:var(--gold);}
+
+  .hint{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.55;}
+
+  /* settings panel */
+  .settings{display:none;padding:14px 18px 4px;border-top:5px double var(--gold-line);margin-top:14px;}
+  .settings.open{display:block;}
+  .settings h2{font-size:14px;margin:2px 0 12px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);}
+  .set-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+  .set-row label{font-size:12.5px;font-weight:700;color:var(--muted);}
+  .set-row input[type=text],.set-row input[type=number],.set-row select{
+    font-size:15px;padding:9px;border:1px solid var(--field-border);border-radius:5px;background:var(--field);color:var(--ink);}
+  .chk{display:flex;align-items:center;gap:9px;margin-bottom:10px;font-size:14px;}
+  .chk input{width:18px;height:18px;}
+
+  .contacts{margin-top:6px;}
+  .contact{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--field-border);font-size:14px;}
+  .contact input[type=radio]{width:18px;height:18px;flex:0 0 auto;}
+  .contact .c-name{font-weight:700;}
+  .contact .c-url{color:var(--muted);font-size:11.5px;word-break:break-all;flex:1 1 100%;}
+  .contact .c-del{margin-left:auto;background:none;border:1px solid var(--field-border);border-radius:4px;
+    color:var(--warn);cursor:pointer;font-size:12px;padding:4px 8px;}
+  .add-c{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .add-c input{font-size:14px;padding:8px;border:1px solid var(--field-border);border-radius:5px;background:var(--field);color:var(--ink);}
+  .add-c button{font-size:14px;padding:9px;border-radius:6px;border:2px solid var(--gold-line);background:var(--gold);color:#1c1c1c;font-weight:700;cursor:pointer;}
+  .set-done{width:100%;margin-top:6px;font-size:15px;padding:11px;border-radius:7px;border:1px solid var(--field-border);
+    background:var(--field);color:var(--ink);font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="banner">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+      <rect width="64" height="64" rx="12" fill="#0b0b0b"/>
+      <rect x="3.5" y="3.5" width="57" height="57" rx="10" fill="none" stroke="#E8B200" stroke-width="2.5"/>
+      <path d="M18 20h28a4 4 0 0 1 4 4v15a4 4 0 0 1-4 4H27l-9 7v-7a4 4 0 0 1-4-4V24a4 4 0 0 1 4-4z"
+            fill="none" stroke="#E8B200" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+    <h1>Messenger Translated</h1>
+    <span class="version">Version 1a</span>
+    <button class="gear" id="gearBtn" title="Settings" aria-label="Settings">&#9881;</button>
+  </div>
+
+  <div class="status" id="status">Ready.</div>
+
+  <main>
+    <span class="lang-chip" id="langChip">English &rarr; Italian</span>
+
+    <div class="box-label">You said (English)</div>
+    <textarea id="srcBox" placeholder="Tap the mic and speak, or type here&hellip;" autocomplete="off"></textarea>
+
+    <div class="mic-row">
+      <button id="micBtn">&#127908; Start listening</button>
+      <button id="translateBtn" class="mini">Translate</button>
+      <button id="clearBtn" class="mini">Clear</button>
+    </div>
+
+    <div class="box-label">Translation</div>
+    <textarea id="outBox" placeholder="Translation appears here" readonly></textarea>
+
+    <button id="openBtn">&#128203; Copy &amp; open Messenger &mdash; <span class="who" id="whoLabel">Rakesh</span></button>
+
+    <div class="hint" id="hint">
+      Speak a sentence, then pause &mdash; after a short silence it translates, copies the Italian to your
+      clipboard and reads it aloud. Tap the button above to jump to the chat, then long&#8209;press the
+      message box and choose <b>Paste</b>.
+    </div>
+  </main>
+
+  <div class="settings" id="settings">
+    <h2>Settings</h2>
+
+    <div class="set-row">
+      <label for="targetSel">Translate into</label>
+      <select id="targetSel"></select>
+    </div>
+
+    <div class="set-row">
+      <label for="speakLangSel">Your speaking language</label>
+      <select id="speakLangSel"></select>
+    </div>
+
+    <div class="set-row">
+      <label for="silenceInp">Pause before translating (milliseconds)</label>
+      <input type="number" id="silenceInp" min="400" max="4000" step="100">
+    </div>
+
+    <div class="chk"><input type="checkbox" id="optCopy"><label for="optCopy">Copy translation to clipboard automatically</label></div>
+    <div class="chk"><input type="checkbox" id="optSpeak"><label for="optSpeak">Read the translation aloud</label></div>
+    <div class="chk"><input type="checkbox" id="optKeepMic"><label for="optKeepMic">Keep listening after each sentence (hands&#8209;free)</label></div>
+    <div class="chk"><input type="checkbox" id="optAutoOpen"><label for="optAutoOpen">Jump to Messenger automatically after translating</label></div>
+
+    <h2 style="margin-top:18px;">Contacts</h2>
+    <div class="contacts" id="contactList"></div>
+    <div class="add-c">
+      <input type="text" id="newName" placeholder="Contact name (e.g. Rakesh)" autocomplete="off">
+      <input type="text" id="newUrl" placeholder="Contact URL (Messenger conversation link)" autocomplete="off">
+      <button id="addContactBtn">Add contact</button>
+    </div>
+
+    <button class="set-done" id="doneBtn">Done</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+
+/* ---------------- language tables ---------------- */
+/* Target languages. `rm:true` = non-Latin script, so we also ask Google for a
+   romanized (Latin-letter) transliteration and prefer it - same behaviour as
+   the desktop Translate app (dt=rm). For Latin-script targets like Italian this
+   has no effect. */
+const TARGETS = [
+  {code:'it', name:'Italian',    tts:'it-IT'},
+  {code:'hi', name:'Hindi',      tts:'hi-IN', rm:true},
+  {code:'es', name:'Spanish',    tts:'es-ES'},
+  {code:'fr', name:'French',     tts:'fr-FR'},
+  {code:'de', name:'German',     tts:'de-DE'},
+  {code:'pt', name:'Portuguese', tts:'pt-PT'},
+  {code:'nl', name:'Dutch',      tts:'nl-NL'},
+  {code:'pl', name:'Polish',     tts:'pl-PL'},
+  {code:'ro', name:'Romanian',   tts:'ro-RO'},
+  {code:'el', name:'Greek',      tts:'el-GR', rm:true},
+  {code:'ru', name:'Russian',    tts:'ru-RU', rm:true},
+  {code:'ar', name:'Arabic',     tts:'ar-SA', rm:true},
+  {code:'tr', name:'Turkish',    tts:'tr-TR'},
+  {code:'zh-CN', name:'Chinese (Simplified)', tts:'zh-CN', rm:true},
+  {code:'ja', name:'Japanese',   tts:'ja-JP', rm:true},
+  {code:'ko', name:'Korean',     tts:'ko-KR', rm:true},
+  {code:'vi', name:'Vietnamese', tts:'vi-VN'},
+  {code:'th', name:'Thai',       tts:'th-TH', rm:true},
+  {code:'id', name:'Indonesian', tts:'id-ID'}
+];
+const SPEAK_LANGS = [
+  {code:'en-AU', name:'English (Australia)'},
+  {code:'en-GB', name:'English (UK)'},
+  {code:'en-US', name:'English (US)'},
+  {code:'en-IN', name:'English (India)'},
+  {code:'en-CA', name:'English (Canada)'},
+  {code:'en-NZ', name:'English (New Zealand)'}
+];
+
+/* ---------------- persisted settings ---------------- */
+const DEFAULTS = {
+  target: 'it',
+  speakLang: 'en-AU',
+  silenceMs: 1200,
+  copy: true,
+  speak: true,
+  keepMic: true,
+  autoOpen: false,
+  contacts: [
+    { name: 'Rakesh', url: 'https://www.facebook.com/messages/e2ee/t/7470701953045735' }
+  ],
+  active: 0
+};
+let CFG = load();
+function load(){
+  try{
+    const j = JSON.parse(localStorage.getItem('mt_cfg') || 'null');
+    if (j && typeof j === 'object'){
+      const c = Object.assign({}, DEFAULTS, j);
+      if (!Array.isArray(c.contacts) || !c.contacts.length) c.contacts = DEFAULTS.contacts.slice();
+      if (c.active >= c.contacts.length || c.active < 0) c.active = 0;
+      return c;
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function save(){ try{ localStorage.setItem('mt_cfg', JSON.stringify(CFG)); }catch(e){} }
+
+/* ---------------- status helper ---------------- */
+let statusTimer = null;
+function setStatus(msg, kind){
+  const el = $('#status');
+  el.textContent = msg;
+  el.className = 'status' + (kind ? ' ' + kind : '');
+  if (statusTimer) clearTimeout(statusTimer);
+  if (kind === 'ok'){
+    statusTimer = setTimeout(() => { el.textContent = 'Ready.'; el.className = 'status'; }, 4000);
+  }
+}
+function targetMeta(){ return TARGETS.find(t => t.code === CFG.target) || TARGETS[0]; }
+function activeContact(){ return CFG.contacts[CFG.active] || CFG.contacts[0]; }
+
+/* ---------------- translation ----------------
+   Primary: the same free, unofficial endpoint the desktop app uses
+   (translate.googleapis.com/translate_a/single?client=gtx). dt=t = translation,
+   dt=rm = romanized transliteration (last array entry, [null,null,"<latin>"]).
+   Fallback: clients5.google.com/translate_a/t (returns a simpler shape). */
+async function translate(text){
+  const meta = targetMeta();
+  const q = encodeURIComponent(text);
+  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' +
+              meta.code + '&dt=t' + (meta.rm ? '&dt=rm' : '') + '&q=' + q;
+  try{
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json();
+    let script = '', roman = '';
+    if (Array.isArray(j[0])){
+      for (const seg of j[0]){
+        if (typeof seg[0] === 'string') script += seg[0];
+        else if (seg.length >= 3 && typeof seg[2] === 'string') roman = seg[2];
+      }
+    }
+    const out = (meta.rm && roman) ? roman : script;
+    if (out.trim()) return out.trim();
+    throw new Error('empty result');
+  }catch(e){
+    // fallback endpoint
+    const r2 = await fetch('https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=' +
+                           meta.code + '&q=' + q);
+    const j2 = await r2.json();
+    if (Array.isArray(j2) && typeof j2[0] === 'string') return j2.join(' ').trim();
+    if (Array.isArray(j2) && Array.isArray(j2[0])) return j2.map(x => x[0]).join(' ').trim();
+    if (Array.isArray(j2) && Array.isArray(j2.sentences)) return j2.sentences.map(s => s.trans).join('').trim();
+    throw new Error('translation failed');
+  }
+}
+
+/* ---------------- speak the translation ---------------- */
+function speakOut(text){
+  if (!CFG.speak || !window.speechSynthesis || !text) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = targetMeta().tts;
+    u.rate = 0.95;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------------- clipboard ---------------- */
+async function copyText(text){
+  if (!text) return false;
+  try{
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){}
+  // legacy fallback
+  try{
+    const ta = $('#outBox');
+    ta.removeAttribute('readonly');
+    ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    ta.setAttribute('readonly', '');
+    return ok;
+  }catch(e){ return false; }
+}
+
+/* ---------------- open the Messenger conversation ---------------- */
+function openMessenger(){
+  const c = activeContact();
+  if (!c || !c.url){ setStatus('No contact URL set - open Settings.', 'warn'); return; }
+  // location.href (not window.open) works from an installed PWA and lets Android
+  // hand the link to the Messenger app if it is installed.
+  window.location.href = c.url;
+}
+
+/* ---------------- the translate + handoff pipeline ---------------- */
+let busy = false;
+async function runTranslate(fromVoice){
+  const src = $('#srcBox').value.trim();
+  if (!src){ if (!fromVoice) setStatus('Say or type something first.', 'warn'); return; }
+  if (busy) return;
+  busy = true;
+  setStatus('Translating…');
+  try{
+    const out = await translate(src);
+    $('#outBox').value = out;
+    let msg = 'Translated';
+    if (CFG.copy){
+      const copied = await copyText(out);
+      msg += copied ? ' · copied to clipboard' : ' (copy blocked - long-press the box to copy)';
+    }
+    setStatus(msg + '.', 'ok');
+    speakOut(out);
+    if (CFG.autoOpen){
+      setStatus(msg + ' · opening Messenger…', 'ok');
+      setTimeout(openMessenger, 700);
+    }
+  }catch(e){
+    setStatus('Translation error: ' + e.message + ' - check your connection and retry.', 'warn');
+  }finally{
+    busy = false;
+  }
+}
+
+/* ---------------- speech recognition with pause detection ----------------
+   Mirrors the desktop workflow's intent: capture continuous speech, and when the
+   speaker PAUSES (no new words for `silenceMs`), treat that as the end of a
+   sentence and fire the translation automatically. With "keep listening" on it
+   then clears the buffer and stays live for the next sentence, hands-free. */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+let listening = false;      // user wants the mic on
+let recAlive = false;       // an SR instance is currently running
+let silenceTimer = null;
+let finalBuf = '';          // finalized words for the current sentence
+let sentSinceUtterance = false;
+
+function armSilenceTimer(){
+  if (silenceTimer) clearTimeout(silenceTimer);
+  silenceTimer = setTimeout(onSilence, Math.max(400, CFG.silenceMs | 0));
+}
+function onSilence(){
+  const text = (finalBuf + ' ' + liveInterim).trim();
+  if (!text || sentSinceUtterance) return;
+  sentSinceUtterance = true;
+  $('#srcBox').value = text;
+  finalBuf = '';
+  liveInterim = '';
+  runTranslate(true).then(() => {
+    if (!CFG.keepMic && listening){ stopListening(); }
+  });
+}
+
+let liveInterim = '';
+function startRec(){
+  if (!SR || recAlive) return;
+  rec = new SR();
+  rec.lang = CFG.speakLang;
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onstart = () => { recAlive = true; };
+  rec.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++){
+      const res = e.results[i];
+      if (res.isFinal) finalBuf += (finalBuf ? ' ' : '') + res[0].transcript.trim();
+      else interim += res[0].transcript;
+    }
+    liveInterim = interim;
+    sentSinceUtterance = false;
+    $('#srcBox').value = (finalBuf + ' ' + interim).trim();
+    armSilenceTimer();
+  };
+  rec.onspeechend = () => { armSilenceTimer(); };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      setStatus('Microphone blocked - allow mic access for this site in your browser settings.', 'warn');
+      stopListening();
+    } else if (e.error === 'no-speech' || e.error === 'aborted' || e.error === 'network'){
+      /* transient - onend will restart if still listening */
+    } else {
+      setStatus('Mic: ' + e.error, 'warn');
+    }
+  };
+  rec.onend = () => {
+    recAlive = false;
+    if (listening){ setTimeout(startRec, 250); }   // keep the session alive
+  };
+  try{ rec.start(); }
+  catch(e){ /* start() throws if called too soon after a previous stop */ }
+}
+function startListening(){
+  if (!SR){
+    setStatus('Speech recognition needs Chrome or Edge (Android Chrome works). You can still type.', 'warn');
+    return;
+  }
+  listening = true;
+  finalBuf = ''; liveInterim = ''; sentSinceUtterance = false;
+  const b = $('#micBtn');
+  b.classList.add('listening');
+  b.innerHTML = '● Listening… (tap to stop)';
+  setStatus('Listening - pause when you finish a sentence.');
+  startRec();
+}
+function stopListening(){
+  listening = false;
+  if (silenceTimer) clearTimeout(silenceTimer);
+  try{ if (rec) rec.stop(); }catch(e){}
+  recAlive = false;
+  const b = $('#micBtn');
+  b.classList.remove('listening');
+  b.innerHTML = '🎤 Start listening';
+}
+function toggleListening(){ listening ? stopListening() : startListening(); }
+
+/* ---------------- settings UI ---------------- */
+function fillSelect(sel, items, current){
+  sel.innerHTML = '';
+  items.forEach(it => {
+    const o = document.createElement('option');
+    o.value = it.code; o.textContent = it.name;
+    if (it.code === current) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+function renderContacts(){
+  const wrap = $('#contactList');
+  wrap.innerHTML = '';
+  CFG.contacts.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'contact';
+    const rb = document.createElement('input');
+    rb.type = 'radio'; rb.name = 'activeContact'; rb.checked = (i === CFG.active);
+    rb.addEventListener('change', () => { CFG.active = i; save(); reflectActive(); });
+    const nm = document.createElement('span'); nm.className = 'c-name'; nm.textContent = c.name || '(unnamed)';
+    const del = document.createElement('button'); del.className = 'c-del'; del.textContent = 'Delete';
+    del.addEventListener('click', () => {
+      if (CFG.contacts.length <= 1){ setStatus('Keep at least one contact.', 'warn'); return; }
+      CFG.contacts.splice(i, 1);
+      if (CFG.active >= CFG.contacts.length) CFG.active = CFG.contacts.length - 1;
+      save(); renderContacts(); reflectActive();
+    });
+    const url = document.createElement('span'); url.className = 'c-url'; url.textContent = c.url || '';
+    row.append(rb, nm, del, url);
+    wrap.appendChild(row);
+  });
+}
+function reflectActive(){
+  const c = activeContact();
+  $('#whoLabel').textContent = (c && c.name) ? c.name : 'Messenger';
+}
+function reflectLangChip(){
+  $('#langChip').textContent = 'English → ' + targetMeta().name;
+}
+
+function openSettings(){
+  fillSelect($('#targetSel'), TARGETS, CFG.target);
+  fillSelect($('#speakLangSel'), SPEAK_LANGS, CFG.speakLang);
+  $('#silenceInp').value = CFG.silenceMs;
+  $('#optCopy').checked = CFG.copy;
+  $('#optSpeak').checked = CFG.speak;
+  $('#optKeepMic').checked = CFG.keepMic;
+  $('#optAutoOpen').checked = CFG.autoOpen;
+  renderContacts();
+  $('#settings').classList.add('open');
+  $('#settings').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function closeSettings(){ $('#settings').classList.remove('open'); }
+
+/* ---------------- wire up ---------------- */
+$('#gearBtn').addEventListener('click', () => {
+  $('#settings').classList.contains('open') ? closeSettings() : openSettings();
+});
+$('#doneBtn').addEventListener('click', closeSettings);
+$('#micBtn').addEventListener('click', toggleListening);
+$('#translateBtn').addEventListener('click', () => runTranslate(false));
+$('#clearBtn').addEventListener('click', () => {
+  $('#srcBox').value = ''; $('#outBox').value = '';
+  finalBuf = ''; liveInterim = ''; setStatus('Cleared.', 'ok');
+});
+$('#openBtn').addEventListener('click', async () => {
+  const out = $('#outBox').value.trim();
+  if (out && CFG.copy) await copyText(out);
+  openMessenger();
+});
+$('#srcBox').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); runTranslate(false); }
+});
+
+$('#targetSel').addEventListener('change', e => { CFG.target = e.target.value; save(); reflectLangChip(); });
+$('#speakLangSel').addEventListener('change', e => {
+  CFG.speakLang = e.target.value; save();
+  if (listening){ stopListening(); startListening(); }
+});
+$('#silenceInp').addEventListener('change', e => {
+  let v = parseInt(e.target.value, 10);
+  if (!isFinite(v)) v = DEFAULTS.silenceMs;
+  v = Math.min(4000, Math.max(400, v));
+  CFG.silenceMs = v; e.target.value = v; save();
+});
+$('#optCopy').addEventListener('change', e => { CFG.copy = e.target.checked; save(); });
+$('#optSpeak').addEventListener('change', e => { CFG.speak = e.target.checked; save(); });
+$('#optKeepMic').addEventListener('change', e => { CFG.keepMic = e.target.checked; save(); });
+$('#optAutoOpen').addEventListener('change', e => { CFG.autoOpen = e.target.checked; save(); });
+
+$('#addContactBtn').addEventListener('click', () => {
+  const name = $('#newName').value.trim();
+  const url = $('#newUrl').value.trim();
+  if (!name || !url){ setStatus('Enter both a name and a URL.', 'warn'); return; }
+  CFG.contacts.push({name, url});
+  CFG.active = CFG.contacts.length - 1;
+  save();
+  $('#newName').value = ''; $('#newUrl').value = '';
+  renderContacts(); reflectActive();
+  setStatus('Contact added.', 'ok');
+});
+
+/* ---------------- init ---------------- */
+reflectLangChip();
+reflectActive();
+if (window.speechSynthesis) { try{ speechSynthesis.getVoices(); }catch(e){} }
+if (!SR){
+  $('#micBtn').disabled = true;
+  $('#micBtn').style.opacity = .55;
+  $('#hint').innerHTML = 'This browser has no speech recognition - type your English above and tap ' +
+    '<b>Translate</b>. (Android Chrome supports the mic.)';
+}
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
