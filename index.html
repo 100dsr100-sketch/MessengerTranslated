@@ -107,14 +107,14 @@
             fill="none" stroke="#E8B200" stroke-width="3" stroke-linejoin="round"/>
     </svg>
     <h1>Messenger Translated</h1>
-    <span class="version">Version 1a</span>
+    <span class="version">Version 1b</span>
     <button class="gear" id="gearBtn" title="Settings" aria-label="Settings">&#9881;</button>
   </div>
 
   <div class="status" id="status">Ready.</div>
 
   <main>
-    <span class="lang-chip" id="langChip">English &rarr; Italian</span>
+    <span class="lang-chip" id="langChip">English &rarr; Hindi</span>
 
     <div class="box-label">You said (English)</div>
     <textarea id="srcBox" placeholder="Tap the mic and speak, or type here&hellip;" autocomplete="off"></textarea>
@@ -131,7 +131,7 @@
     <button id="openBtn">&#128203; Copy &amp; open Messenger &mdash; <span class="who" id="whoLabel">Rakesh</span></button>
 
     <div class="hint" id="hint">
-      Speak a sentence, then pause &mdash; after a short silence it translates, copies the Italian to your
+      Speak a sentence, then pause &mdash; after a short silence it translates, copies the translation to your
       clipboard and reads it aloud. Tap the button above to jump to the chat, then long&#8209;press the
       message box and choose <b>Paste</b>.
     </div>
@@ -213,7 +213,7 @@ const SPEAK_LANGS = [
 
 /* ---------------- persisted settings ---------------- */
 const DEFAULTS = {
-  target: 'it',
+  target: 'hi',
   speakLang: 'en-AU',
   silenceMs: 1200,
   copy: true,
