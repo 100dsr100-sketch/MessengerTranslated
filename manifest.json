@@ -1,6 +1,6 @@
 {
-  "name": "Messenger Translated",
-  "short_name": "Msg Translated",
+  "name": "Messenger Translated Web",
+  "short_name": "Msg Trans Web",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -8,7 +8,17 @@
   "background_color": "#0b0b0b",
   "theme_color": "#0b0b0b",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
   ]
 }
