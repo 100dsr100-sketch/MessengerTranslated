@@ -1,6 +1,6 @@
 {
-  "name": "Messenger Translated Web",
-  "short_name": "Msg Trans Web",
+  "name": "DSR Messenger Web",
+  "short_name": "DSR Msg Web",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
