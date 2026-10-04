@@ -2,7 +2,7 @@
    - satisfies the installability requirement (Android "Install app")
    - network-first for the page itself, so deployed updates show on next launch
    - cache-first for the static shell, with an offline fallback */
-const CACHE = 'msg-translated-v1';
+const CACHE = 'msg-translated-v2';
 const OWN = 'msg-translated-';   // only ever delete THIS app's old caches – every DSR app shares the github.io origin's cache storage
 const SHELL = ['./', './index.html', './icon.svg', './manifest.json'];
 
